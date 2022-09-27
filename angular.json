@@ -15,6 +15,7 @@
     "luggage": "apps/luggage",
     "luggage-domain": "libs/luggage/domain",
     "luggage-e2e": "apps/luggage-e2e",
+    "luggage-feature-checkin": "libs/luggage/feature-checkin",
     "my-plugin": "libs/my-plugin",
     "my-plugin-e2e": "apps/my-plugin-e2e",
     "passenger": "apps/passenger",
