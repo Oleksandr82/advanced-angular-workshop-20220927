@@ -1,5 +1,7 @@
-import {createFeatureSelector, createSelector} from "@ngrx/store";
+import {createFeatureSelector, createSelector, select} from "@ngrx/store";
 import {State} from "./flight-booking.reducer";
+import {pipe} from "rxjs";
+import {map} from "rxjs/operators";
 
 
 // Create feature selector
@@ -52,3 +54,14 @@ export const selectActiveUserFlights = createSelector(
     return activeUserFlights;
   }
 );
+
+export const selectDelayedRxJSOperator = () =>
+  pipe(
+    // RxJS operator to select state from store
+    select(selectFlights),
+    // RxJS map operator
+    map(flights =>
+      // Array filter function
+      flights.filter(f => f.delayed)
+    )
+  );
