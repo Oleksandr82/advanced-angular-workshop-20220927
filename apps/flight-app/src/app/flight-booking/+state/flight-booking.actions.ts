@@ -6,7 +6,7 @@ export const flightsLoaded = createAction(
   props<{flights: Flight[]}>()
 );
 
-export const updateFlight = createAction(
+export const flightUpdate = createAction(
   '[FlightBooking] Update Flight',
   props<{flight: Flight}>()
 );

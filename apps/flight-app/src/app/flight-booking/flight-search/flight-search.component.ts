@@ -1,21 +1,45 @@
 import {Component, OnInit} from '@angular/core';
-import {FlightService} from '@flight-workspace/flight-lib';
+import {Flight, FlightService} from '@flight-workspace/flight-lib';
 import {Store} from "@ngrx/store";
-import {flightsLoad, updateFlight} from "../+state/flight-booking.actions";
-import {take} from "rxjs";
-import {
-  selectActiveUserFlights,
-  selectedFilteredFlights,
-  selectFlightsWithParam
-} from "../+state/flight-booking.selectors";
-import {State} from "../+state/flight-booking.reducer";
+import {Observable, switchMap, take} from "rxjs";
+import {ComponentStore} from "@ngrx/component-store";
+import * as fromFlightBooking from '../+state';
+import {map} from "rxjs/operators";
+
+export interface Filter {
+  from: string;
+  to: string;
+  urgent: boolean;
+}
+
+export interface LocalState {
+  filters: Filter[];
+  flights: Flight[];
+}
+
+export const initialLocalState: LocalState = {
+  filters: [],
+  flights: []
+};
 
 @Component({
   selector: 'flight-search',
   templateUrl: './flight-search.component.html',
-  styleUrls: ['./flight-search.component.css']
+  styleUrls: ['./flight-search.component.css'],
+  providers: [
+    ComponentStore
+  ]
 })
 export class FlightSearchComponent implements OnInit {
+
+  constructor(
+    private globalStore: Store,
+    private localStore: ComponentStore<LocalState>,
+    private flightService: FlightService) {
+
+    this.localStore.setState(initialLocalState);
+    this.selectFlights$.subscribe(console.log);
+  }
 
   from = 'Hamburg'; // in Germany
   to = 'Graz'; // in Austria
@@ -27,11 +51,11 @@ export class FlightSearchComponent implements OnInit {
   // flights$ = this.store.select(selectFlightsWithParam([3]));
 
   // An example of using an extended state with a complex selector
-  flights$ = this.store.select(selectActiveUserFlights);
+  // flights$ = this.store.select(selectActiveUserFlights);
 
-  get flights() {
-    return this.flightService.flights;
-  }
+  // Using local Store
+  flights$ = this.globalStore.select(fromFlightBooking.selectActiveUserFlights);
+
 
   // "shopping basket" with selected flights
   basket: { [id: number]: boolean } = {
@@ -39,10 +63,62 @@ export class FlightSearchComponent implements OnInit {
     5: true
   };
 
-  constructor(
-    private flightService: FlightService,
-    private store: Store<State>) {
-  }
+  selectedFilter = { from: 'Hamburg', to: 'Graz', urgent: false };
+
+  /**
+   * Updater
+   */
+
+  addFilter = this.localStore.updater(
+    (state, filter: Filter) => ({
+      ...state,
+      filters: [
+        ...state.filters,
+        filter
+      ]
+    })
+  );
+
+  setFlights = this.localStore.updater(
+    (state, flights: Flight[]) => ({
+      ...state,
+      flights
+    })
+  );
+
+  /**
+   * Selectors
+   */
+
+  selectFilters$ = this.localStore.select(
+    // Selectors
+
+    // Projector
+    state => state.filters
+  );
+
+  selectFlights$ = this.localStore.select(
+    // Selectors
+
+    // Projector
+    state => state.flights
+  );
+
+  /**
+   * Side-Effects
+   */
+
+  searchFlights = this.localStore.effect(
+    (filter$: Observable<Filter>) =>
+      filter$.pipe(
+        switchMap(filter => this.flightService.find(
+          filter.from,
+          filter.to,
+          filter.urgent
+        )),
+        map(flights => this.setFlights(flights))
+      )
+  );
 
   ngOnInit() {
     console.log('ngOnInit');
@@ -55,15 +131,37 @@ export class FlightSearchComponent implements OnInit {
     // );
   }
 
+
+  get flights() {
+    return this.flightService.flights;
+  }
+
   search(): void {
     if (!this.from || !this.to) return;
 
-    // New (with NGRX effects):
-    this.store.dispatch(flightsLoad({
+    const filter = {
       from: this.from,
       to: this.to,
       urgent: this.urgent
-    }));
+    };
+
+    this.addFilter(filter);
+    this.searchFlights(filter);
+
+    this.globalStore.dispatch(
+      fromFlightBooking.flightsLoad({
+        from: this.from,
+        to: this.to,
+        urgent: this.urgent
+      })
+    );
+
+    // New (with NGRX effects):
+    // this.globalStore.dispatch(flightsLoad({
+    //   from: this.from,
+    //   to: this.to,
+    //   urgent: this.urgent
+    // }));
 
     // Old:
     // this.flightService
@@ -78,18 +176,20 @@ export class FlightSearchComponent implements OnInit {
     //   });
   }
 
-  delay(): void {
-    // this.flightService.delay();
-
-    this.flights$.pipe(take(1)).subscribe(flights => {
-      const flight = flights[0];
-
-      const oldDate = new Date(flight.date);
-      const newDate = new Date(oldDate.getTime() + 15 * 60 * 1000);
-      const newFlight = { ...flight, date: newDate.toISOString() };
-
-      this.store.dispatch(updateFlight({flight: newFlight}));
-    });
+  delay(flight: Flight): void {
+    this.globalStore.dispatch(
+      fromFlightBooking.flightUpdate({
+        flight: {
+          ...flight,
+          date: addMinutesToDate(flight.date, 15).toISOString(),
+          delayed: true
+        }
+      })
+    );
   }
-
 }
+
+export const addMinutesToDate = (date: Date | string, minutes: number): Date => {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  return new Date(dateObj.getTime() + minutes * 60 * 1_000);
+};
