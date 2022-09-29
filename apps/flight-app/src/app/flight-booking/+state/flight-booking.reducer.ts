@@ -6,16 +6,18 @@ import {flightsLoaded, updateFlight} from "./flight-booking.actions";
 export const flightBookingFeatureKey = 'flightBooking';
 
 export interface State {
-  flights: Flight[]
+  flights: Flight[];
+  negativeList: number[]
 }
+
+export const initialState: State = {
+  flights: [],
+  negativeList: [3]
+};
 
 export interface FlightBookingAppState {
   flightBooking: State
 }
-
-export const initialState: State = {
-  flights: []
-};
 
 export const flightBookingReducer = createReducer(
   initialState,
