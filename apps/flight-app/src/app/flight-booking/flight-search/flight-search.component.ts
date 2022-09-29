@@ -46,6 +46,13 @@ export class FlightSearchComponent implements OnInit {
 
   ngOnInit() {
     console.log('ngOnInit');
+
+    // this.flights$ = this.store.pipe(
+    //   fromFlightBooking.selectItemsByFilter(
+    //     fromFlightBooking.selectFlights,
+    //     flight => flight.delayed === false
+    //   )
+    // );
   }
 
   search(): void {

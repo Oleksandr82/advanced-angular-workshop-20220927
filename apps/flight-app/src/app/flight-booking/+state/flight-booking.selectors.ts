@@ -65,3 +65,17 @@ export const selectDelayedRxJSOperator = () =>
       flights.filter(f => f.delayed)
     )
   );
+
+export const selectItemsByFilter =
+  <T, K>(
+    mapFn: (state: T) => Array<K>,
+    filter: (item: K) => boolean
+  ) => pipe(
+    // RxJS operator to select state from store
+    select(mapFn),
+    // RxJS map operator
+    map(arr =>
+      // Array filter function
+      arr.filter(filter)
+    )
+  );
