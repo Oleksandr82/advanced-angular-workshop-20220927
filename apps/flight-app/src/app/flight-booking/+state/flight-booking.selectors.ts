@@ -1,8 +1,14 @@
-import { createSelector } from "@ngrx/store";
-import { FlightBookingAppState } from "./flight-booking.reducer";
+import {createFeatureSelector, createSelector} from "@ngrx/store";
+import {State} from "./flight-booking.reducer";
 
-export const selectFlights = (s: FlightBookingAppState) => s.flightBooking.flights;
-export const negativeList = (s: FlightBookingAppState) => s.flightBooking.negativeList;
+
+// Create feature selector
+export const selectFlightBooking = createFeatureSelector<State>('flightBooking');
+
+// Use feature selector to get data from feature branch
+export const selectFlights = createSelector(selectFlightBooking, s => s.flights);
+
+export const negativeList = createSelector(selectFlightBooking, s => s.negativeList);
 
 export const selectedFilteredFlights = createSelector(
   selectFlights,
