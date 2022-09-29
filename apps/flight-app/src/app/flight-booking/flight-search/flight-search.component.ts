@@ -3,7 +3,7 @@ import {FlightService} from '@flight-workspace/flight-lib';
 import {Store} from "@ngrx/store";
 import {flightsLoad, updateFlight} from "../+state/flight-booking.actions";
 import {take} from "rxjs";
-import {selectedFilteredFlights} from "../+state/flight-booking.selectors";
+import {selectedFilteredFlights, selectFlightsWithParam} from "../+state/flight-booking.selectors";
 import {State} from "../+state/flight-booking.reducer";
 
 @Component({
@@ -17,7 +17,10 @@ export class FlightSearchComponent implements OnInit {
   to = 'Graz'; // in Austria
   urgent = false;
 
-  flights$ = this.store.select(selectedFilteredFlights);
+  // flights$ = this.store.select(selectedFilteredFlights);
+
+  // An example of a selector with params
+  flights$ = this.store.select(selectFlightsWithParam([3]));
 
   get flights() {
     return this.flightService.flights;

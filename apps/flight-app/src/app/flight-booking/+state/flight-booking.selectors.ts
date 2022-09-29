@@ -15,3 +15,8 @@ export const selectedFilteredFlights = createSelector(
   negativeList,
   (flights, negativeList) => flights.filter(f => !negativeList.includes(f.id))
 );
+
+export const selectFlightsWithParam = (blockedFlights: number[]) => createSelector(
+  selectFlights,
+  (flights) => flights.filter(f => !blockedFlights.includes(f.id))
+);
