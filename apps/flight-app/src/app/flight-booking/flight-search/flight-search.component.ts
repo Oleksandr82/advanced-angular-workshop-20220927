@@ -3,7 +3,11 @@ import {FlightService} from '@flight-workspace/flight-lib';
 import {Store} from "@ngrx/store";
 import {flightsLoad, updateFlight} from "../+state/flight-booking.actions";
 import {take} from "rxjs";
-import {selectedFilteredFlights, selectFlightsWithParam} from "../+state/flight-booking.selectors";
+import {
+  selectActiveUserFlights,
+  selectedFilteredFlights,
+  selectFlightsWithParam
+} from "../+state/flight-booking.selectors";
 import {State} from "../+state/flight-booking.reducer";
 
 @Component({
@@ -20,7 +24,10 @@ export class FlightSearchComponent implements OnInit {
   // flights$ = this.store.select(selectedFilteredFlights);
 
   // An example of a selector with params
-  flights$ = this.store.select(selectFlightsWithParam([3]));
+  // flights$ = this.store.select(selectFlightsWithParam([3]));
+
+  // An example of using an extended state with a complex selector
+  flights$ = this.store.select(selectActiveUserFlights);
 
   get flights() {
     return this.flightService.flights;

@@ -20,3 +20,35 @@ export const selectFlightsWithParam = (blockedFlights: number[]) => createSelect
   selectFlights,
   (flights) => flights.filter(f => !blockedFlights.includes(f.id))
 );
+
+export const selectPassengers = createSelector(
+  selectFlightBooking,
+  (state) => state.passenger
+);
+
+export const selectBookings = createSelector(
+  selectFlightBooking,
+  (state) => state.bookings
+);
+
+export const selectUser = createSelector(
+  selectFlightBooking,
+  (state) => state.user
+);
+
+export const selectActiveUserFlights = createSelector(
+  // Selectors:
+  selectFlights,
+  selectBookings,
+  selectUser,
+  // Projector:
+  (flights, bookings, user) => {
+    const activeUserPassengerId = user.passengerId;
+    const activeUserFlightIds = bookings
+      .filter(b => b.passengerId === activeUserPassengerId)
+      .map(b => b.flightId);
+    const activeUserFlights = flights
+      .filter(f => activeUserFlightIds.includes(f.id));
+    return activeUserFlights;
+  }
+);
